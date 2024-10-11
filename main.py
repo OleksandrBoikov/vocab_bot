@@ -1,7 +1,7 @@
 from fastapi import FastAPI,Request
 from telegram import Update
 from tgbot import create_bot
-import config
+
 app=FastAPI()
 application = create_bot()
 

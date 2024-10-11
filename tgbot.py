@@ -1,5 +1,5 @@
 import logging,config,openai
-from fastapi import FastAPI, Request
+
 
 from supabase import create_client, Client
 from telegram import Update,InlineKeyboardMarkup,InlineKeyboardButton
@@ -58,8 +58,6 @@ async def button(update, context):
     await query.answer()
     data=query.data.split(':')
     add_user(data[0],data[1])
-
-    # Здесь можно обработать нажатие
     await query.edit_message_text(text=f"Great I would help you to learn {data[1]}")
 
 async def translate(text, target_lang):
@@ -72,7 +70,6 @@ async def translate(text, target_lang):
         max_tokens=60,
         temperature=0.7
     )
-    # Возвращаем текст ответа
     return response['choices'][0]['message']['content'].strip()
 
 async def replyWithTranslated(update: Update, context: ContextTypes.DEFAULT_TYPE):
