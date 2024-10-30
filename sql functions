@@ -1,0 +1,81 @@
+CREATE OR REPLACE FUNCTION unique_cards_weekly()
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(DISTINCT tg_user_id)
+        FROM words
+        WHERE created_at >= NOW() - INTERVAL '7 days'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION unique_users_weekly()
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(DISTINCT events.tg_user_id)
+        FROM events
+
+        WHERE events.event_name = '/practice'
+          AND events.created_at >= NOW() - INTERVAL '7 days'
+    );
+END;
+$$ LANGUAGE plpgsql;
+    SELECT events.tg_user_id, COUNT(events.tg_user_id) AS event_count
+    FROM events
+    JOIN words ON events.tg_user_id = words.tg_user_id
+    WHERE events.event_name = '/practice'
+      AND events.created_at >= NOW() - INTERVAL '7 days'
+      AND words.created_at >= NOW() - INTERVAL '7 days'
+    GROUP BY events.tg_user_id
+    ORDER BY event_count DESC
+    LIMIT 5;
+
+
+DROP FUNCTION IF EXISTS most_active_users();
+
+CREATE OR REPLACE FUNCTION most_active_users()
+RETURNS
+DECLARE
+    active_users ;
+BEGIN
+    SELECT ARRAY(
+        SELECT users.tg_user_name
+        FROM auth.users
+        LEFT JOIN words ON users.tg_user_id = words.tg_user_id
+        LEFT JOIN events ON users.tg_user_id = events.tg_user_id
+        WHERE events.event_name = '/practice'
+          AND events.created_at >= NOW() - INTERVAL '60 days'
+          AND words.created_at >= NOW() - INTERVAL '60 days'
+        GROUP BY users.tg_user_name
+        ORDER BY COUNT(events.tg_user_id) DESC
+        LIMIT 5
+    ) INTO active_users;
+
+    RETURN active_users;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS most_active_users();
+
+CREATE OR REPLACE FUNCTION most_active_users()
+RETURNS INTEGER[] AS $$
+DECLARE
+    active_users INTEGER[];
+BEGIN
+    SELECT ARRAY(
+        SELECT events.tg_user_id
+        FROM events
+        JOIN words ON events.tg_user_id = words.tg_user_id
+        WHERE events.event_name = '/practice'
+          AND events.created_at >= NOW() - INTERVAL '60 days'
+          AND words.created_at >= NOW() - INTERVAL '60 days'
+        GROUP BY events.tg_user_id
+        ORDER BY COUNT(events.tg_user_id) DESC
+        LIMIT 5
+    ) INTO active_users;
+
+    RETURN active_users;
+END;
+$$ LANGUAGE plpgsql;
