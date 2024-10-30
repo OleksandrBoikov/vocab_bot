@@ -33,12 +33,16 @@ $$ LANGUAGE plpgsql;
     LIMIT 5;
 
 
+
+
+#финальная версия не смог проверить так как не полная таблица users
+
 DROP FUNCTION IF EXISTS most_active_users();
 
 CREATE OR REPLACE FUNCTION most_active_users()
-RETURNS
+RETURNS TEXT[] as $$
 DECLARE
-    active_users ;
+    active_users TEXT[] ;
 BEGIN
     SELECT ARRAY(
         SELECT users.tg_user_name
@@ -56,7 +60,7 @@ BEGIN
     RETURN active_users;
 END;
 $$ LANGUAGE plpgsql;
-
+#тестовая функция рабочая возвращает id пользователей а не имена
 DROP FUNCTION IF EXISTS most_active_users();
 
 CREATE OR REPLACE FUNCTION most_active_users()
